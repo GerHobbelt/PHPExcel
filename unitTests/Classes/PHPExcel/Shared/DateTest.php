@@ -161,4 +161,28 @@ class DateTest extends PHPUnit_Framework_TestCase
     	return new testDataFileIterator('rawTestData/Shared/DateTimeFormatCodes.data');
 	}
 
+    /**
+     * @dataProvider providerDateTimeExcelToPHP1900Timezone
+     */
+	public function testDateTimeExcelToPHP1900Timezone()
+	{
+		$result = call_user_func(
+			array('PHPExcel_Shared_Date','setExcelCalendar'),
+			PHPExcel_Shared_Date::CALENDAR_WINDOWS_1900
+		);
+
+		$args = func_get_args();
+		$expectedResult = array_pop($args);
+		if ($args[0] < 1) {
+			$expectedResult += gmmktime(0,0,0);
+		}
+		$result = call_user_func_array(array('PHPExcel_Shared_Date','ExcelToPHP'),$args);
+		$this->assertEquals($expectedResult, $result);
+	}
+
+    public function providerDateTimeExcelToPHP1900Timezone()
+    {
+    	return new testDataFileIterator('rawTestData/Shared/DateTimeExcelToPHP1900Timezone.data');
+	}
+
 }
