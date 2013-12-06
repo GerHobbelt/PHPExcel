@@ -60,7 +60,11 @@ $objPHPExcel->getActiveSheet()->setCellValue('B1', 'Range #1')
                               ->setCellValue('B2', 3)
                               ->setCellValue('B3', 7)
                               ->setCellValue('B4', 13)
-                              ->setCellValue('B5', '=SUM(B2:B4)');
+                              ->setCellValue('B5', '=B2+B3+B4');
+                              //->setCellValue('B5', '=SUM(B2:B4)');
+
+$objPHPExcel->getActiveSheet()->insertNewRowBefore(1, 1); // insert row --> BREAKs the formula at B5 (now B6)
+
 echo date('H:i:s') , " Sum of Range #1 is " ,
                      $objPHPExcel->getActiveSheet()->getCell('B5')->getCalculatedValue() , EOL;
 
