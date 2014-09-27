@@ -213,7 +213,7 @@ class PHPExcel_Reader_Excel5_MD5
     }
 
 
-    private static function rotate($decimal, $bits)
+	private static function rotate ($decimal, $bits)
     {
         $binary = str_pad(decbin($decimal), 32, "0", STR_PAD_LEFT);
         return bindec(substr($binary, $bits).substr($binary, 0, $bits));
