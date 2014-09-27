@@ -152,18 +152,20 @@ class PHPExcel_Worksheet_MemoryDrawing extends PHPExcel_Worksheet_BaseDrawing im
 			//requires PHP 5 >= 5.4.0
 			$size = getimagesizefromstring($data);
 		}
-		$this->_width = $size[0];
-		$this->_height = $size[1];
-		switch ($size[2]) {
-			case IMAGETYPE_PNG:
-				$this->_mimeType = self::MIMETYPE_PNG;
-				break;
-			case IMAGETYPE_GIF:
-				$this->_mimeType = self::MIMETYPE_GIF;
-				break;
-			case IMAGETYPE_JPEG:
-				$this->_mimeType = self::MIMETYPE_JPEG;
-				break;
+		if ($size) {
+			$this->_width = $size[0];
+			$this->_height = $size[1];
+			switch ($size[2]) {
+				case IMAGETYPE_PNG:
+					$this->_mimeType = self::MIMETYPE_PNG;
+					break;
+				case IMAGETYPE_GIF:
+					$this->_mimeType = self::MIMETYPE_GIF;
+					break;
+				case IMAGETYPE_JPEG:
+					$this->_mimeType = self::MIMETYPE_JPEG;
+					break;
+			}
 		}
 		return $this;
 	}
