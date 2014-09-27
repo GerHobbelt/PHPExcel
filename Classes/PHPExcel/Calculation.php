@@ -194,6 +194,8 @@ class PHPExcel_Calculation {
 	 */
 	private $_cyclicReferenceStack;
 
+	private $_cellStack = array();
+
 	/**
 	 * Current iteration counter for cyclic formulae
 	 * If the value is 0 (or less) then cyclic formulae will throw an exception,
@@ -1626,7 +1628,7 @@ class PHPExcel_Calculation {
 												 'argumentCount'	=>	'2'
 												),
 				'VALUE'					=> array('category'			=>	PHPExcel_Calculation_Function::CATEGORY_TEXT_AND_DATA,
-												 'functionCall'		=>	'PHPExcel_Calculation_Functions::DUMMY',
+												 'functionCall'		=>	'PHPExcel_Calculation_TextData::VALUE',
 												 'argumentCount'	=>	'1'
 												),
 				'VAR'					=> array('category'			=>	PHPExcel_Calculation_Function::CATEGORY_STATISTICAL,
@@ -2240,9 +2242,17 @@ class PHPExcel_Calculation {
 		}
 
 		//	Execute the calculation for the cell formula
+        $this->_cellStack[] = array(
+            'sheet' => $pCell->getWorksheet()->getTitle(),
+            'cell' => $pCell->getCoordinate(),
+        );
 		try {
 			$result = self::_unwrapResult($this->_calculateFormulaValue($pCell->getValue(), $pCell->getCoordinate(), $pCell));
+            $cellAddress = array_pop($this->_cellStack);
+            $this->_workbook->getSheetByName($cellAddress['sheet'])->getCell($cellAddress['cell']);
 		} catch (PHPExcel_Exception $e) {
+            $cellAddress = array_pop($this->_cellStack);
+            $this->_workbook->getSheetByName($cellAddress['sheet'])->getCell($cellAddress['cell']);
 			throw new PHPExcel_Calculation_Exception($e->getMessage());
 		}
 
@@ -2364,13 +2374,13 @@ class PHPExcel_Calculation {
 	 * @throws	PHPExcel_Calculation_Exception
 	 */
 	public function _calculateFormulaValue($formula, $cellID=null, PHPExcel_Cell $pCell = null) {
-		$cellValue = '';
+		$cellValue = null;
 
 		//	Basic validation that this is indeed a formula
 		//	We simply return the cell value if not
 		$formula = trim($formula);
 		if ($formula{0} != '=') return self::_wrapResult($formula);
-		$formula = ltrim(substr($formula,1));
+		$formula = ltrim(substr($formula, 1));
 		if (!isset($formula{0})) return self::_wrapResult($formula);
 
 		$pCellParent = ($pCell !== NULL) ? $pCell->getWorksheet() : NULL;
@@ -2382,20 +2392,23 @@ class PHPExcel_Calculation {
 
 		if (($wsTitle{0} !== "\x00") && ($this->_cyclicReferenceStack->onStack($wsTitle.'!'.$cellID))) {
 			if ($this->cyclicFormulaCount <= 0) {
+                $this->_cyclicFormulaCell = '';
 				return $this->_raiseFormulaError('Cyclic Reference in Formula');
 			} elseif (($this->_cyclicFormulaCount >= $this->cyclicFormulaCount) &&
 					  ($this->_cyclicFormulaCell == $wsTitle.'!'.$cellID)) {
+                $this->_cyclicFormulaCell = '';
 				return $cellValue;
 			} elseif ($this->_cyclicFormulaCell == $wsTitle.'!'.$cellID) {
 				++$this->_cyclicFormulaCount;
 				if ($this->_cyclicFormulaCount >= $this->cyclicFormulaCount) {
+                    $this->_cyclicFormulaCell = '';
 					return $cellValue;
 				}
 			} elseif ($this->_cyclicFormulaCell == '') {
-				$this->_cyclicFormulaCell = $wsTitle.'!'.$cellID;
 				if ($this->_cyclicFormulaCount >= $this->cyclicFormulaCount) {
 					return $cellValue;
 				}
+				$this->_cyclicFormulaCell = $wsTitle.'!'.$cellID;
 			}
 		}
 
