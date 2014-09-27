@@ -2072,7 +2072,7 @@ class PHPExcel_Reader_Excel2007 extends PHPExcel_Reader_Abstract implements PHPE
 		return $style;
 	}
 
-	private static function boolean($value = NULL)
+	private static function boolean($value = null)
 	{
         if (is_object($value)) {
 			$value = (string) $value;
